@@ -1,3 +1,60 @@
+const loadAllItems = require("./items")
+const loadPromotions = require("./promotions")
+
 function bestCharge(selectedItems) {
-  return /*TODO*/;
+  const promotions = loadPromotions();
+  const cartItems = selectedIds2CartItems(selectedItems);//得到购物车菜单及其信息
+  const bestProm = getBestProm(cartItems, promotions);//获得优惠方式及内容
+  return getBill(cartItems, bestProm);
 }
+
+function selectedIds2CartItems(selectedItems) {
+  return selectedItems.map(selectedItem => {
+    const id = selectedItem.substring(0, selectedItem.indexOf("x")).trim();
+    const number = selectedItem.substring(selectedItem.indexOf("x") + 1).trim();
+    const item = getItemById(id);
+    return {
+      id: id, name: item.name, number: number,
+      totalPrice: item.price * number,
+    }
+  });
+}
+
+function getBestProm(cartItems, promotions) {
+  let cartPrice = cartItems.reduce((acc, cur) => acc + cur.totalPrice, 0);
+  let bestProm = {"type": null, "discount": 0, "count": cartPrice};
+  promotions.forEach(function (promotion) {
+    var discount = 0;
+    if (promotion.type === "指定菜品半价") {
+      let discountItems = cartItems.filter(item => promotion.items.includes(item.id))
+      discount = discountItems.reduce((acc, cur) => acc + cur.totalPrice / 2, 0);
+      promotion.type += "(" + discountItems.map(item => item.name).join("，") + ")";
+    }
+    if (promotion.type === "满30减6元") {
+      discount = Math.floor(cartPrice / 30) * 6;
+    }
+    if (discount > bestProm.discount) {
+      bestProm = {"type": promotion.type, "discount": discount, "count": cartPrice - discount}
+    }
+  });
+  return bestProm;
+}
+
+function getBill(cartItems, bestProm) {
+  const header = "============= 订餐明细 =============\n";
+  const delimiter = "-----------------------------------\n";
+  const footer = "===================================\n";
+  let bill = header;
+  bill += cartItems.reduce((acc, cur) => acc + `${cur.name} x ${cur.number} = ${cur.totalPrice}元\n`, "");
+  bill += delimiter;
+  bill += bestProm.type ? `使用优惠:\n${bestProm.type}，省${bestProm.discount}元\n${delimiter}` : ""
+  bill += `总计：${bestProm.count}元\n`;
+  bill += footer;
+  return bill;
+}
+
+function getItemById(id) {
+  return loadAllItems().filter(item => item.id === id)[0];
+}
+
+module.exports = bestCharge;
