@@ -2,13 +2,12 @@ const loadAllItems = require("./items")
 const loadPromotions = require("./promotions")
 
 function bestCharge(selectedItems) {
-  const promotions = loadPromotions();
-  const cartItems = selectedIds2CartItems(selectedItems);//得到购物车菜单及其信息
-  const bestProm = getBestProm(cartItems, promotions);//获得优惠方式及内容
+  const cartItems = selectedItems2CartItems(selectedItems);//得到购物车菜单及其信息
+  const bestProm = getBestProm(cartItems);//获得优惠方式及内容
   return getBill(cartItems, bestProm);
 }
 
-function selectedIds2CartItems(selectedItems) {
+function selectedItems2CartItems(selectedItems) {
   return selectedItems.map(selectedItem => {
     const id = selectedItem.substring(0, selectedItem.indexOf("x")).trim();
     const number = selectedItem.substring(selectedItem.indexOf("x") + 1).trim();
@@ -20,10 +19,10 @@ function selectedIds2CartItems(selectedItems) {
   });
 }
 
-function getBestProm(cartItems, promotions) {
+function getBestProm(cartItems) {
   let cartPrice = cartItems.reduce((acc, cur) => acc + cur.totalPrice, 0);
   let bestProm = {"type": null, "discount": 0, "count": cartPrice};
-  promotions.forEach(function (promotion) {
+  loadPromotions().forEach(function (promotion) {
     var discount = 0;
     if (promotion.type === "指定菜品半价") {
       let discountItems = cartItems.filter(item => promotion.items.includes(item.id))
