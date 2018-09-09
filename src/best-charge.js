@@ -2,8 +2,8 @@ const loadAllItems = require("./items")
 const loadPromotions = require("./promotions")
 
 function bestCharge(selectedItems) {
-  const cartItems = selectedItems2CartItems(selectedItems);//得到购物车菜单及其信息
-  const bestProm = getBestProm(cartItems);//获得优惠方式及内容
+  const cartItems = selectedItems2CartItems(selectedItems);
+  const bestProm = getBestProm(cartItems);
   return getBill(cartItems, bestProm);
 }
 
